@@ -1,11 +1,13 @@
 // API untuk petugas loket: memanggil dan mengubah status tiket.
 const express = require('express');
 const { transaksi } = require('../db');
+const { wajib } = require('./auth');
 
 const router = express.Router();
+const petugas = wajib('petugas', 'admin');
 
 // Panggil berikutnya. SKIP LOCKED: tiket yang sedang diambil loket lain dilompati, bukan ditunggu.
-router.post('/loket/:id/panggil', async (req, res) => {
+router.post('/loket/:id/panggil', petugas, async (req, res) => {
   const loket = Number(req.params.id);
   const tiket = await transaksi(async (db) => {
     const { rows } = await db.query(
@@ -36,7 +38,7 @@ const BOLEH = {
 };
 
 // Ubah status satu tiket: ulang, lewati, layani, atau selesai
-router.post('/tiket-loket/:id/:aksi', async (req, res) => {
+router.post('/tiket-loket/:id/:aksi', petugas, async (req, res) => {
   const aturan = BOLEH[req.params.aksi];
   if (!aturan) return res.status(400).json({ error: 'Aksi tidak dikenal' });
   const hasil = await transaksi(async (db) => {

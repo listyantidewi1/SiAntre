@@ -1,11 +1,20 @@
 // SiAntre: server utama
 const express = require('express');
+const session = require('express-session');
 const { pool } = require('./db');
 
 const app = express();
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, sameSite: 'lax', maxAge: 12 * 60 * 60 * 1000 },
+}));
 app.use('/api', require('./routes/tiket').router);
 app.use('/api', require('./routes/booking'));
+app.use('/api', require('./routes/auth').router);
+app.use('/api', require('./routes/laporan'));
 app.use('/api', require('./routes/loket'));
 
 app.get('/halo', (req, res) => {
