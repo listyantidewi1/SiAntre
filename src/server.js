@@ -5,13 +5,14 @@ const { dengarkan } = require('./siaran');
 const { pool } = require('./db');
 
 const app = express();
+app.set('trust proxy', 1); // di belakang Nginx
 app.use(express.json());
 app.use(express.static('public'));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax', maxAge: 12 * 60 * 60 * 1000 },
+  cookie: { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 12 * 60 * 60 * 1000 },
 }));
 app.use('/api', require('./routes/tiket').router);
 app.use('/api', require('./routes/booking'));
