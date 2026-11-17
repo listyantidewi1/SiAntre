@@ -55,4 +55,4 @@ router.get('/tiket/:kode', async (req, res) => {
   res.json({ ...t, posisi: t.di_depan + 1, perkiraan_menit: t.di_depan * t.avg_minutes });
 });
 
-module.exports = router;
+module.exports = { router, buatTiket };
