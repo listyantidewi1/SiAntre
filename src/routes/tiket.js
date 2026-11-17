@@ -2,6 +2,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const { pool, transaksi } = require('../db');
+const { siarkan } = require('../siaran');
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.post('/tiket', async (req, res) => {
   }
   const tiket = await transaksi((db) => buatTiket(db, serviceId));
   if (!tiket) return res.status(404).json({ error: 'Layanan tidak ditemukan' });
+  siarkan('antrean', { service_id: serviceId });
   res.status(201).json(tiket);
 });
 

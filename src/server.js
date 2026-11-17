@@ -1,10 +1,12 @@
 // SiAntre: server utama
 const express = require('express');
 const session = require('express-session');
+const { dengarkan } = require('./siaran');
 const { pool } = require('./db');
 
 const app = express();
 app.use(express.json());
+app.use(express.static('public'));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -15,6 +17,7 @@ app.use('/api', require('./routes/tiket').router);
 app.use('/api', require('./routes/booking'));
 app.use('/api', require('./routes/auth').router);
 app.use('/api', require('./routes/laporan'));
+app.get('/api/siaran', dengarkan);
 app.use('/api', require('./routes/loket'));
 
 app.get('/halo', (req, res) => {

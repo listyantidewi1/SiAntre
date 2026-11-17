@@ -2,6 +2,7 @@
 const express = require('express');
 const { transaksi } = require('../db');
 const { wajib } = require('./auth');
+const { siarkan } = require('../siaran');
 
 const router = express.Router();
 const petugas = wajib('petugas', 'admin');
@@ -20,7 +21,7 @@ router.post('/loket/:id/panggil', petugas, async (req, res) => {
            LIMIT 1
            FOR UPDATE SKIP LOCKED
         )
-        RETURNING id, label`,
+        RETURNING id, label, (SELECT name FROM counters WHERE id = $1) AS loket`,
       [loket]
     );
     if (rows.length === 0) return null;
@@ -28,6 +29,8 @@ router.post('/loket/:id/panggil', petugas, async (req, res) => {
     return rows[0];
   });
   if (!tiket) return res.status(404).json({ error: 'Antrean kosong' });
+  siarkan('panggil', { label: tiket.label, loket: tiket.loket }); // setelah commit
+  siarkan('antrean', {});
   res.json(tiket);
 });// Perpindahan status yang diizinkan (diagram status di bab 1)
 const BOLEH = {
@@ -51,6 +54,7 @@ router.post('/tiket-loket/:id/:aksi', petugas, async (req, res) => {
     return rows[0];
   });
   if (!hasil) return res.status(409).json({ error: 'Status tiket tidak bisa diubah dengan aksi ini' });
+  siarkan('antrean', {});
   res.json(hasil);
 });
 
