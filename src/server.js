@@ -41,4 +41,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Terjadi kesalahan di server' });
 });
 
-app.listen(3000);
+if (require.main === module) app.listen(3000, () => console.log('SiAntre berjalan'));
+module.exports = app;
