@@ -10,8 +10,9 @@ Isi halaman ini:
 4. [Perbedaan perintah dengan yang ada di video](#4-perbedaan-perintah-dengan-yang-ada-di-video)
 5. [Melihat kode setiap bab](#5-melihat-kode-setiap-bab)
 6. [Menjalankan dengan Docker Compose (Bab 12)](#6-menjalankan-dengan-docker-compose-bab-12)
-7. [Catatan kecil yang sering membuat macet](#7-catatan-kecil-yang-sering-membuat-macet)
-8. [Kalau ingin memakai MySQL](#8-kalau-ingin-memakai-mysql)
+7. [Menyiapkan server sebelum Bab 12](#7-menyiapkan-server-sebelum-bab-12)
+8. [Catatan kecil yang sering membuat macet](#8-catatan-kecil-yang-sering-membuat-macet)
+9. [Kalau ingin memakai MySQL](#9-kalau-ingin-memakai-mysql)
 
 ## 1. Alat yang perlu dipasang
 
@@ -209,7 +210,50 @@ docker compose up -d
 
 Dengan cara ini, PostgreSQL berjalan di dalam Docker bersama aplikasi dan Nginx. Cara ini dipakai untuk memasang aplikasi di server pada Bab 12. Untuk Bab 3 sampai Bab 11, video memakai PostgreSQL yang terpasang di laptop seperti di bagian 2.
 
-## 7. Catatan kecil yang sering membuat macet
+## 7. Menyiapkan server sebelum Bab 12
+
+Bab 12 memasang SiAntre di server sewaan (VPS) dengan sistem operasi Ubuntu. Sebelum `docker compose up`, ada empat hal yang perlu siap.
+
+**1. Masuk ke server lewat SSH.** Penyedia VPS memberimu alamat IP dan kata sandi. Dari terminal laptop:
+
+```
+ssh root@ALAMAT_IP_SERVER
+```
+
+Setelah masuk, tanda di depan baris berubah menjadi nama server. Mulai saat itu, semua perintah dijalankan di server.
+
+**2. Pasang Docker dan Git di server.**
+
+```
+curl -fsSL https://get.docker.com | sh
+docker --version
+apt install git
+```
+
+**3. Arahkan domain ke server.** Di pengaturan DNS tempat kamu membeli domain, buat catatan bertipe `A` yang berisi alamat IP server. Tunggu beberapa menit, lalu periksa dari laptop dengan `ping namadomainmu`. Jawabannya harus menampilkan alamat IP server.
+
+**4. Ambil sertifikat HTTPS.** Jalankan ini di server **sebelum** `docker compose up`, karena certbot perlu memakai port 80 sebentar:
+
+```
+apt install certbot
+certbot certonly --standalone -d namadomainmu
+```
+
+Sertifikat tersimpan di `/etc/letsencrypt`, dan folder itu dibaca Nginx lewat volume di `compose.yaml`. Jangan lupa mengganti `antre.bengkelmajujaya.test` di `deploy/nginx.conf` dan di `.env` dengan nama domainmu sendiri.
+
+Sertifikat berlaku 90 hari. Certbot memperpanjangnya sendiri, tetapi ia perlu port 80 yang sedang dipakai Nginx. Supaya perpanjangan berhasil, beri tahu certbot untuk menghentikan Nginx sebentar. Ganti letak folder dengan folder proyekmu:
+
+```
+certbot renew --dry-run \
+  --pre-hook  "docker compose --project-directory /root/SiAntre stop nginx" \
+  --post-hook "docker compose --project-directory /root/SiAntre start nginx"
+```
+
+Kalau percobaan itu berhasil, jalankan sekali lagi tanpa `--dry-run`. Certbot menyimpan kedua pilihan itu dan memakainya pada perpanjangan otomatis berikutnya.
+
+Langkah nomor 1 sampai 4 ditulis dari dokumentasi alat masing-masing dan belum kami jalankan di VPS sungguhan. Yang sudah diuji adalah `docker compose up` beserta Nginx di komputer percobaan, seperti yang terlihat di video.
+
+## 8. Catatan kecil yang sering membuat macet
 
 **Pengguna Windows: pakai Git Bash supaya perintahnya sama dengan video.** Video direkam di terminal bergaya Linux. Git untuk Windows sudah membawa terminal serupa yang bernama Git Bash. Di VS Code, klik panah kecil di samping tanda `+` pada panel terminal, lalu pilih **Git Bash**. Di terminal itu, perintah seperti `curl ... -d '{"service_id": 1}'` dan `DATABASE_URL=... node src/server.js` bisa diketik persis seperti di video.
 
@@ -234,6 +278,16 @@ Sebelum uji dua loket, isi dulu antreannya dengan `psql -U postgres -d antrean -
 
 **Database untuk test (Bab 11).** `npm test` memerlukan database bernama `antrean_test`. Buat sekali saja dengan `createdb -U postgres antrean_test`. Test akan mengosongkan dan mengisi ulang database itu setiap kali dijalankan, jadi jangan arahkan ke database `antrean` yang berisi datamu.
 
+**Mencoba di HP sebelum online (Bab 10).** Sambungkan HP dan laptop ke Wi-Fi yang sama, lalu cari alamat IP laptop:
+
+```
+ipconfig                      # Windows: lihat baris "IPv4 Address"
+ipconfig getifaddr en0        # macOS
+hostname -I                   # Linux
+```
+
+Di browser HP, buka alamat itu diikuti `:3000`, misalnya `http://192.168.1.23:3000`. Kalau halaman tidak terbuka di Windows, biasanya firewall yang menghalangi. Pilih **Allow access** saat Windows bertanya tentang Node.js, dan pastikan Wi-Fi laptop diatur sebagai jaringan *Private*.
+
 **Backup otomatis setiap malam di server (Bab 12).** Skrip `deploy/backup.sh` membuat satu berkas backup dan menghapus yang lebih tua dari tujuh hari. Supaya berjalan sendiri setiap pukul 02.00, masuk ke server, ketik `crontab -e`, lalu tambahkan satu baris ini (sesuaikan letak foldernya):
 
 ```
@@ -242,7 +296,7 @@ Sebelum uji dua loket, isi dulu antreannya dengan `psql -U postgres -d antrean -
 
 Periksa besok paginya dengan `ls backup/`. Backup yang hanya disimpan di server yang sama akan ikut hilang kalau servernya rusak, jadi salin juga ke tempat lain.
 
-## 8. Kalau ingin memakai MySQL
+## 9. Kalau ingin memakai MySQL
 
 Untuk pemula, cara termudah adalah tetap mengikuti PostgreSQL seperti di video. Semua konsepnya (desain tabel, transaksi, kunci baris, REST API) tetap berlaku di MySQL 8, tetapi kodenya tidak bisa langsung dipakai.
 
