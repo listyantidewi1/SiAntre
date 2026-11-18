@@ -2,6 +2,20 @@
 
 Sistem antrean dan reservasi untuk Bengkel Maju Jaya, dibangun langkah demi langkah di video **"Membangun Aplikasi dari Nol"** (kanal [@iTeachSWE](https://www.youtube.com/@iTeachSWE)). Teknologinya Node.js, Express, PostgreSQL, HTML/CSS/JavaScript murni, Docker, dan Nginx.
 
+## Tampilan
+
+| Layar TV ruang tunggu | Halaman petugas loket |
+| --- | --- |
+| ![Layar TV ruang tunggu: nomor yang dipanggil, panggilan sebelumnya, jumlah menunggu, dan kode QR](docs/gambar/tv.png) | ![Halaman petugas: nomor yang sedang ditangani, tombol Panggil berikutnya, dan daftar menunggu](docs/gambar/petugas.png) |
+| Nomor yang dipanggil muncul seketika dan dibacakan dengan suara. | Petugas memanggil, mengulang, melewati, lalu melayani pelanggan. |
+
+| Ambil nomor dari HP | Pantau giliran dari HP | Laporan untuk pemilik |
+| --- | --- | --- |
+| <img src="docs/gambar/hp-ambil-nomor.png" alt="Halaman ambil nomor di HP: pilihan tiga layanan" width="240"> | <img src="docs/gambar/hp-tiket.png" alt="Halaman tiket di HP: nomor antrean, posisi, dan perkiraan menit" width="240"> | <img src="docs/gambar/laporan.png" alt="Halaman laporan: rata-rata waktu tunggu per layanan dan grafik tiket per jam" width="420"> |
+| Pelanggan memindai kode QR, lalu memilih layanan. | Posisi dan perkiraan waktu berubah sendiri. | Rata-rata waktu tunggu dan jam tersibuk. |
+
+Semua angka pada gambar adalah data contoh.
+
 Isi halaman ini:
 
 1. [Alat yang perlu dipasang](#1-alat-yang-perlu-dipasang)
